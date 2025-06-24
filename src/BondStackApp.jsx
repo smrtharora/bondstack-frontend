@@ -9,7 +9,6 @@ import { Textarea } from "./components/ui/textarea";
 export default function BondStackApp() {
   const [securities, setSecurities] = useState([]);
   const [formData, setFormData] = useState({});
-  const [excelData, setExcelData] = useState([]);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -35,42 +34,6 @@ export default function BondStackApp() {
     } catch (err) {
       console.error("Error posting to backend:", err);
     }
-  };
-
-  const handleExcelUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    let XLSX;
-    try {
-      const xlsxModule = await import("xlsx");
-      XLSX = xlsxModule;
-    } catch (err) {
-      console.error("Failed to load XLSX dynamically", err);
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = (evt) => {
-      const bstr = evt.target.result;
-      const wb = XLSX.read(bstr, { type: "binary" });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-      setExcelData(data);
-
-      if (data.length > 1) {
-        const [headers, firstRow] = [data[0], data[1]];
-        const temp = {};
-        headers.forEach((key, idx) => {
-          temp[key] = firstRow[idx];
-        });
-        setFormData((prev) => ({ ...prev, ...temp }));
-      }
-    };
-
-    reader.readAsBinaryString(file);
   };
 
   useEffect(() => {
@@ -99,31 +62,6 @@ export default function BondStackApp() {
           <Card>
             <CardContent className="p-4 grid gap-4">
               <h2 className="text-lg font-semibold mb-2">Create New Security</h2>
-
-              <div className="flex justify-between items-center">
-                <Button className="mb-2 w-fit" asChild>
-                  <label>
-                    Upload Excel
-                    <input
-                      type="file"
-                      accept=".xlsx"
-                      onChange={handleExcelUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </Button>
-              </div>
-
-              {excelData.length > 0 && (
-                <div className="border rounded p-2 text-sm bg-gray-50">
-                  <strong>Preview Excel Upload:</strong>
-                  <ul className="mt-2 space-y-1">
-                    {excelData.slice(0, 5).map((row, idx) => (
-                      <li key={idx}>{row.join(" | ")}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
