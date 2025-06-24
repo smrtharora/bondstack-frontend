@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Input } from "./components/ui/input";
 import { Label } from "./components/ui/label";
 import { Textarea } from "./components/ui/textarea";
-import * as XLSX from "xlsx";
 
 export default function BondStackApp() {
   const [securities, setSecurities] = useState([]);
@@ -38,8 +37,19 @@ export default function BondStackApp() {
     }
   };
 
-  const handleExcelUpload = (e) => {
+  const handleExcelUpload = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
+    let XLSX;
+    try {
+      const xlsxModule = await import("xlsx");
+      XLSX = xlsxModule;
+    } catch (err) {
+      console.error("Failed to load XLSX dynamically", err);
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = (evt) => {
